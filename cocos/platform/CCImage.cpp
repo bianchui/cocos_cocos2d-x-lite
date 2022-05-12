@@ -1923,7 +1923,9 @@ bool Image::saveImageToPNG(const std::string& filePath, bool isToRGB)
 #ifdef PNG_USE_PALETTE
         png_colorp palette;
 #endif//PNG_USE_PALETTE
+#ifdef PNG_USE_WRITE_IMAGE
         png_bytep *row_pointers;
+#endif//PNG_USE_WRITE_IMAGE
 
         fp = fopen(FileUtils::getInstance()->getSuitableFOpen(filePath).c_str(), "wb");
         CC_BREAK_IF(nullptr == fp);
@@ -1973,6 +1975,7 @@ bool Image::saveImageToPNG(const std::string& filePath, bool isToRGB)
 
         png_set_packing(png_ptr);
 
+#ifdef PNG_USE_WRITE_IMAGE
         row_pointers = (png_bytep *)malloc(_height * sizeof(png_bytep));
         if(row_pointers == nullptr)
         {
@@ -1980,44 +1983,67 @@ bool Image::saveImageToPNG(const std::string& filePath, bool isToRGB)
             png_destroy_write_struct(&png_ptr, &info_ptr);
             break;
         }
+#endif//PNG_USE_WRITE_IMAGE
 
         if (!hasAlpha())
         {
             for (int i = 0; i < (int)_height; i++)
             {
+#ifdef PNG_USE_WRITE_IMAGE
                 row_pointers[i] = (png_bytep)_data + i * _width * 3;
+#else//PNG_USE_WRITE_IMAGE
+                png_write_row(png_ptr, (png_const_bytep)_data + i * _width * 3);
+#endif//PNG_USE_WRITE_IMAGE
             }
 
+#ifdef PNG_USE_WRITE_IMAGE
             png_write_image(png_ptr, row_pointers);
 
             free(row_pointers);
             row_pointers = nullptr;
+#endif//PNG_USE_WRITE_IMAGE
         }
         else
         {
             if (isToRGB)
             {
+#ifdef PNG_USE_WRITE_IMAGE
                 unsigned char *tempData = static_cast<unsigned char*>(malloc(_width * _height * 3 * sizeof(unsigned char)));
+#else//PNG_USE_WRITE_IMAGE
+                unsigned char *tempData = static_cast<unsigned char*>(malloc(_width * 3 * sizeof(unsigned char)));
+#endif//PNG_USE_WRITE_IMAGE
                 if (nullptr == tempData)
                 {
                     fclose(fp);
                     png_destroy_write_struct(&png_ptr, &info_ptr);
 
+#ifdef PNG_USE_WRITE_IMAGE
                     free(row_pointers);
                     row_pointers = nullptr;
+#endif//PNG_USE_WRITE_IMAGE
                     break;
                 }
 
                 for (int i = 0; i < _height; ++i)
                 {
+#ifdef PNG_USE_WRITE_IMAGE
                     for (int j = 0; j < _width; ++j)
                     {
                         tempData[(i * _width + j) * 3] = _data[(i * _width + j) * 4];
                         tempData[(i * _width + j) * 3 + 1] = _data[(i * _width + j) * 4 + 1];
                         tempData[(i * _width + j) * 3 + 2] = _data[(i * _width + j) * 4 + 2];
                     }
+#else//PNG_USE_WRITE_IMAGE
+                    for (int j = 0; j < _width; ++j) {
+                        tempData[j * 3] = _data[(i * _width + j) * 4];
+                        tempData[j * 3 + 1] = _data[(i * _width + j) * 4 + 1];
+                        tempData[j * 3 + 2] = _data[(i * _width + j) * 4 + 2];
+                    }
+                    png_write_row(png_ptr, tempData);
+#endif//PNG_USE_WRITE_IMAGE
                 }
 
+#ifdef PNG_USE_WRITE_IMAGE
                 for (int i = 0; i < (int)_height; i++)
                 {
                     row_pointers[i] = (png_bytep)tempData + i * _width * 3;
@@ -2027,6 +2053,7 @@ bool Image::saveImageToPNG(const std::string& filePath, bool isToRGB)
 
                 free(row_pointers);
                 row_pointers = nullptr;
+#endif//PNG_USE_WRITE_IMAGE
 
                 if (tempData != nullptr)
                 {
@@ -2037,13 +2064,19 @@ bool Image::saveImageToPNG(const std::string& filePath, bool isToRGB)
             {
                 for (int i = 0; i < (int)_height; i++)
                 {
+#ifdef PNG_USE_WRITE_IMAGE
                     row_pointers[i] = (png_bytep)_data + i * _width * 4;
+#else//PNG_USE_WRITE_IMAGE
+                    png_write_row(png_ptr, (png_const_bytep)_data + i * _width * 4);
+#endif//PNG_USE_WRITE_IMAGE
                 }
 
+#ifdef PNG_USE_WRITE_IMAGE
                 png_write_image(png_ptr, row_pointers);
 
                 free(row_pointers);
                 row_pointers = nullptr;
+#endif//PNG_USE_WRITE_IMAGE
             }
         }
 
