@@ -143,7 +143,7 @@ void se::ScriptEngine::reportUncaughtPromise(const PendingUncaughtPromise& pendi
     v8::Local<v8::Message> message = pending.message.Get(isolate);
     
     std::string str = v8ExceptionDetail(isolate, message, value);
-    this->callExceptionCallback("", "unhandledRejectedPromise", str.c_str());
+    this->callExceptionCallback("", "Uncaught (in promise):", str.c_str());
 }
 
 void se::ScriptEngine::tickPromise() {
