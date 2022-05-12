@@ -11,8 +11,8 @@ inline v8::Local<T> v8ToLocal(const v8::MaybeLocal<T>& v) {
     return ret;
 }
 
-const char* str_or_null(const char* str) {
-    return str ? str : "null";
+inline const char* str_or_null(const char* str) {
+    return str ? str : "(null)";
 }
 
 v8::Local<v8::String> NewOneByteString(v8::Isolate* isolate, const char* str) {
@@ -86,7 +86,11 @@ std::string v8ExceptionDetail(v8::Isolate* isolate, v8::Local<v8::Message> messa
                 output.append(str_or_null(*fun));
                 output.append(" (");
             }
-            output.append(str_or_null(*url));
+            if (*url) {
+                output.append(*url);
+            } else if (frame->IsEval()) {
+                output.append("[eval code]");
+            }
             output.append(buf, sprintf(buf, ":%d:%d", frame->GetLineNumber(), frame->GetColumn()));
             if (!funName.IsEmpty()) {
                 output.append(")");
@@ -111,7 +115,7 @@ bool se::ScriptEngine::promiseReject(const v8::PromiseRejectMessage& msg) {
     if (promise.IsEmpty()) {
         return false;
     }
-    
+
     if (event == v8::kPromiseRejectWithNoHandler) {
         const int hash = promise->GetIdentityHash();
         PendingUncaughtPromise* pending = new PendingUncaughtPromise;
