@@ -1920,7 +1920,9 @@ bool Image::saveImageToPNG(const std::string& filePath, bool isToRGB)
         FILE *fp;
         png_structp png_ptr;
         png_infop info_ptr;
+#ifdef PNG_USE_PALETTE
         png_colorp palette;
+#endif//PNG_USE_PALETTE
         png_bytep *row_pointers;
 
         fp = fopen(FileUtils::getInstance()->getSuitableFOpen(filePath).c_str(), "wb");
@@ -1962,8 +1964,10 @@ bool Image::saveImageToPNG(const std::string& filePath, bool isToRGB)
                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
         }
 
+#ifdef PNG_USE_PALETTE
         palette = (png_colorp)png_malloc(png_ptr, PNG_MAX_PALETTE_LENGTH * sizeof (png_color));
         png_set_PLTE(png_ptr, info_ptr, palette, PNG_MAX_PALETTE_LENGTH);
+#endif//PNG_USE_PALETTE
 
         png_write_info(png_ptr, info_ptr);
 
@@ -2045,8 +2049,10 @@ bool Image::saveImageToPNG(const std::string& filePath, bool isToRGB)
 
         png_write_end(png_ptr, info_ptr);
 
+#ifdef PNG_USE_PALETTE
         png_free(png_ptr, palette);
         palette = nullptr;
+#endif//PNG_USE_PALETTE
 
         png_destroy_write_struct(&png_ptr, &info_ptr);
 
