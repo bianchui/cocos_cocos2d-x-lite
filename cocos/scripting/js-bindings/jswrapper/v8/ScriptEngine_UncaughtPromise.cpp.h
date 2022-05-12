@@ -145,3 +145,13 @@ void se::ScriptEngine::reportUncaughtPromise(const PendingUncaughtPromise& pendi
     std::string str = v8ExceptionDetail(isolate, message, value);
     this->callExceptionCallback("", "unhandledRejectedPromise", str.c_str());
 }
+
+void se::ScriptEngine::tickPromise() {
+    if (_pendingUncaughtPromise.size()) {
+        std::vector<std::unique_ptr<PendingUncaughtPromise>> copy;
+        copy.swap(_pendingUncaughtPromise);
+        for (auto iter = copy.begin(), end = copy.end(); iter != end; ++iter) {
+            reportUncaughtPromise(**iter);
+        }
+    }
+}

@@ -281,6 +281,10 @@ void EventDispatcher::dispatchTickEvent(float dt)
     {
         se::ScriptEngine::getInstance()->getGlobalObject()->getProperty("gameTick", &_tickVal);
     }
+    
+#if SCRIPT_ENGINE_TYPE == SCRIPT_ENGINE_V8
+    se::ScriptEngine::getInstance()->tickPromise();
+#endif//SCRIPT_ENGINE_TYPE == SCRIPT_ENGINE_V8
 
     static std::chrono::steady_clock::time_point prevTime;
     prevTime = std::chrono::steady_clock::now();

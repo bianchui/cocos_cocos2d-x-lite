@@ -360,7 +360,8 @@ namespace se {
         std::vector<std::unique_ptr<PendingUncaughtPromise>> _pendingUncaughtPromise;
         bool promiseReject(const v8::PromiseRejectMessage& msg);
         void reportUncaughtPromise(const PendingUncaughtPromise& pending);
-
+    public:
+        void tickPromise();
     };
 
 } // namespace se {
