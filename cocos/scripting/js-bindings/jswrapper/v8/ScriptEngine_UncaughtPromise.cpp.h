@@ -19,7 +19,7 @@ v8::Local<v8::String> NewOneByteString(v8::Isolate* isolate, const char* str) {
     return v8ToLocal(v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(str), v8::NewStringType::kNormal));
 }
 
-std::string v8ExceptionDetail(v8::Isolate* isolate, v8::Local<v8::Message> message, v8::Local<v8::Value> er, bool forceSourceLine) {
+std::string v8ExceptionDetail(v8::Isolate* isolate, v8::Local<v8::Message> message, v8::Local<v8::Value> er) {
     v8::HandleScope handleScope(isolate);
     v8::TryCatch fatal_try_catch(isolate);
     v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
@@ -100,45 +100,48 @@ std::string v8ExceptionDetail(v8::Isolate* isolate, v8::Local<v8::Message> messa
 
 }
 
-namespace se {
-    bool ScriptEngine::promiseReject(v8::PromiseRejectMessage msg) {
-        v8::Isolate *isolate = getInstance()->_isolate;
-        v8::HandleScope scope(isolate);
-        std::stringstream ss;
-        auto event = msg.GetEvent();
-        auto value = msg.GetValue();
-        const char *eventName = "[invalidatePromiseEvent]";
-        
-        if (event == v8::kPromiseRejectWithNoHandler) {
-            if (!value.IsEmpty()) {
-                auto message = v8::Exception::CreateMessage(isolate, value);
-                printf("%s\n", v8ExceptionDetail(isolate, message, value, true).c_str());
+bool se::ScriptEngine::promiseReject(const v8::PromiseRejectMessage& msg) {
+    v8::Isolate *isolate = _isolate;
+    auto event = msg.GetEvent();
+    if (event != v8::kPromiseRejectWithNoHandler && event != v8::kPromiseHandlerAddedAfterReject) {
+        return false;
+    }
+    
+    v8::Local<v8::Promise> promise = msg.GetPromise();
+    if (promise.IsEmpty()) {
+        return false;
+    }
+    
+    if (event == v8::kPromiseRejectWithNoHandler) {
+        const int hash = promise->GetIdentityHash();
+        PendingUncaughtPromise* pending = new PendingUncaughtPromise;
+        v8::Local<v8::Value> value = msg.GetValue();
+        pending->promise.Reset(isolate, promise);
+        if (!value.IsEmpty()) {
+            pending->value.Reset(isolate, value);
+            pending->message.Reset(isolate, v8::Exception::CreateMessage(isolate, value));
+        }
+        pending->hash = hash;
+        _pendingUncaughtPromise.push_back(std::unique_ptr<PendingUncaughtPromise>(pending));
+    } else if (event == v8::kPromiseHandlerAddedAfterReject) {
+        const int hash = promise->GetIdentityHash();
+        for (auto iter = _pendingUncaughtPromise.begin(), end = _pendingUncaughtPromise.end(); iter != end; ++iter) {
+            if ((*iter)->hash == hash && (*iter)->promise == promise) {
+                _pendingUncaughtPromise.erase(iter);
+                break;
             }
         }
-        
-        if(event == v8::kPromiseRejectWithNoHandler) {
-            eventName = "unhandledRejectedPromise";
-        }else if(event == v8::kPromiseHandlerAddedAfterReject) {
-            eventName = "handlerAddedAfterPromiseRejected";
-        }else if(event == v8::kPromiseRejectAfterResolved) {
-            eventName = "rejectAfterPromiseResolved";
-        }else if( event == v8::kPromiseResolveAfterResolved) {
-            eventName = "resolveAfterPromiseResolved";
-        }
-        
-        if(!value.IsEmpty()) {
-            // prepend error object to stack message
-            v8::Local<v8::String> str = value->ToString(isolate->GetCurrentContext()).ToLocalChecked();
-            v8::String::Utf8Value valueUtf8(isolate, str);
-            ss << *valueUtf8 << std::endl;
-        }
-        
-        auto stackStr = getInstance()->getCurrentStackTrace();
-        ss << "stacktrace: " << std::endl;
-        ss << stackStr << std::endl;
-        getInstance()->callExceptionCallback("", eventName, ss.str().c_str());
-        
     }
-} // namespace se {
+    return true;
+}
 
-#endif // #if SCRIPT_ENGINE_TYPE == SCRIPT_ENGINE_V8
+void se::ScriptEngine::reportUncaughtPromise(const PendingUncaughtPromise& pending) {
+    v8::Isolate *isolate = _isolate;
+    v8::HandleScope scope(isolate);
+    v8::Local<v8::Promise> promise = pending.promise.Get(isolate);
+    v8::Local<v8::Value> value = pending.value.Get(isolate);
+    v8::Local<v8::Message> message = pending.message.Get(isolate);
+    
+    std::string str = v8ExceptionDetail(isolate, message, value);
+    this->callExceptionCallback("", "unhandledRejectedPromise", str.c_str());
+}

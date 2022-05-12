@@ -377,17 +377,14 @@ namespace se {
     {
         v8::Isolate *isolate = getInstance()->_isolate;
         v8::HandleScope scope(isolate);
+        if (getInstance()->promiseReject(msg)) {
+            return;
+        }
+        
         std::stringstream ss;
         auto event = msg.GetEvent();
         auto value = msg.GetValue();
         const char *eventName = "[invalidatePromiseEvent]";
-        
-        if (event == v8::kPromiseRejectWithNoHandler) {
-            if (!value.IsEmpty()) {
-                auto message = v8::Exception::CreateMessage(isolate, value);
-                printf("%s\n", v8ExceptionDetail(isolate, message, value, true).c_str());
-            }
-        }
         
         if(event == v8::kPromiseRejectWithNoHandler) {
             eventName = "unhandledRejectedPromise";
