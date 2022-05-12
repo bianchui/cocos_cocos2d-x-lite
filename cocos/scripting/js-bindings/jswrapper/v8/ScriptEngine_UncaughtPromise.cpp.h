@@ -1,3 +1,6 @@
+// [BC]Uncaught Promise
+namespace {
+    
 inline void v8UnusedBool(bool) {
 }
 
@@ -72,7 +75,6 @@ std::string v8ExceptionDetail(v8::Isolate* isolate, v8::Local<v8::Message> messa
 
     v8::Local<v8::StackTrace> stack = message->GetStackTrace();
     if (!stack.IsEmpty()) {
-        v8::HandleScope handleScope(isolate);
         const int count = stack->GetFrameCount();
         for (int i = 0; i < count; ++i) {
             v8::Local<v8::StackFrame> frame = stack->GetFrame(isolate, i);
@@ -95,3 +97,48 @@ std::string v8ExceptionDetail(v8::Isolate* isolate, v8::Local<v8::Message> messa
 
     return output;
 }
+
+}
+
+namespace se {
+    bool ScriptEngine::promiseReject(v8::PromiseRejectMessage msg) {
+        v8::Isolate *isolate = getInstance()->_isolate;
+        v8::HandleScope scope(isolate);
+        std::stringstream ss;
+        auto event = msg.GetEvent();
+        auto value = msg.GetValue();
+        const char *eventName = "[invalidatePromiseEvent]";
+        
+        if (event == v8::kPromiseRejectWithNoHandler) {
+            if (!value.IsEmpty()) {
+                auto message = v8::Exception::CreateMessage(isolate, value);
+                printf("%s\n", v8ExceptionDetail(isolate, message, value, true).c_str());
+            }
+        }
+        
+        if(event == v8::kPromiseRejectWithNoHandler) {
+            eventName = "unhandledRejectedPromise";
+        }else if(event == v8::kPromiseHandlerAddedAfterReject) {
+            eventName = "handlerAddedAfterPromiseRejected";
+        }else if(event == v8::kPromiseRejectAfterResolved) {
+            eventName = "rejectAfterPromiseResolved";
+        }else if( event == v8::kPromiseResolveAfterResolved) {
+            eventName = "resolveAfterPromiseResolved";
+        }
+        
+        if(!value.IsEmpty()) {
+            // prepend error object to stack message
+            v8::Local<v8::String> str = value->ToString(isolate->GetCurrentContext()).ToLocalChecked();
+            v8::String::Utf8Value valueUtf8(isolate, str);
+            ss << *valueUtf8 << std::endl;
+        }
+        
+        auto stackStr = getInstance()->getCurrentStackTrace();
+        ss << "stacktrace: " << std::endl;
+        ss << stackStr << std::endl;
+        getInstance()->callExceptionCallback("", eventName, ss.str().c_str());
+        
+    }
+} // namespace se {
+
+#endif // #if SCRIPT_ENGINE_TYPE == SCRIPT_ENGINE_V8

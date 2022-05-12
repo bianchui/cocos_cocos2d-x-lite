@@ -33,7 +33,7 @@
 #include "Utils.hpp"
 #include "../State.hpp"
 #include "../MappingUtils.hpp"
-#include "v8ExceptionDetail.cpp.h"
+#include "ScriptEngine_UncaughtPromise.cpp.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 #include <sys/sysctl.h>
@@ -640,6 +640,8 @@ namespace se {
             hook();
         }
         _afterCleanupHookArray.clear();
+        
+        _pendingUncaughtPromise.clear();
 
         _isInCleanup = false;
         NativePtrToObjectMap::destroy();

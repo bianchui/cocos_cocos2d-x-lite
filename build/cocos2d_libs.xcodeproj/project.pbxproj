@@ -2247,7 +2247,7 @@
 		50ABBF521926664700A911A9 /* CCDevice-mac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "CCDevice-mac.mm"; sourceTree = "<group>"; };
 		50ABBF531926664700A911A9 /* CCGL-mac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CCGL-mac.h"; sourceTree = "<group>"; };
 		50ABBF541926664700A911A9 /* CCPlatformDefine-mac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CCPlatformDefine-mac.h"; sourceTree = "<group>"; };
-		59E95C5F282BE6A600B5B2C9 /* v8ExceptionDetail.cpp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = v8ExceptionDetail.cpp.h; sourceTree = "<group>"; };
+		59E95C5F282BE6A600B5B2C9 /* ScriptEngine_UncaughtPromise.cpp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScriptEngine_UncaughtPromise.cpp.h; sourceTree = "<group>"; };
 		A07A4D641783777C0073F6A7 /* libcocos2d iOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libcocos2d iOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6A554201C2A7C1300FDD954 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../external/mac/libs/libcurl.a; sourceTree = "<group>"; };
 		A6A554221C2A7C3100FDD954 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = ../external/mac/libs/libcrypto.a; sourceTree = "<group>"; };
@@ -3017,10 +3017,10 @@
 				1A52DB07205BCD9200350EE3 /* ObjectWrap.h */,
 				1A52DB0A205BCD9200350EE3 /* ScriptEngine.cpp */,
 				1A52DB13205BCD9200350EE3 /* ScriptEngine.hpp */,
+				59E95C5F282BE6A600B5B2C9 /* ScriptEngine_UncaughtPromise.cpp.h */,
 				1A52DB18205BCD9200350EE3 /* SeApi.h */,
 				1A52DB00205BCD9200350EE3 /* Utils.cpp */,
 				1A52DB1D205BCD9200350EE3 /* Utils.hpp */,
-				59E95C5F282BE6A600B5B2C9 /* v8ExceptionDetail.cpp.h */,
 			);
 			path = v8;
 			sourceTree = "<group>";

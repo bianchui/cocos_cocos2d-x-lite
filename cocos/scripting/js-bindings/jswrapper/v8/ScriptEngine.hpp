@@ -348,6 +348,19 @@ namespace se {
         bool _isGarbageCollecting;
         bool _isInCleanup;
         bool _isErrorHandleWorking;
+        
+    private:
+        // [BC]Uncaught Promise
+        struct PendingUncaughtPromise {
+            v8::Persistent<v8::Value> value;
+            v8::Persistent<v8::Promise> promise;
+            v8::Persistent<v8::Message> message;
+            int hash;
+        };
+        std::vector<std::unique_ptr<PendingUncaughtPromise>> _pendingUncaughtPromise;
+        bool promiseReject(const v8::PromiseRejectMessage& msg);
+        void reportUncaughtPromise(const PendingUncaughtPromise& pending);
+
     };
 
 } // namespace se {
