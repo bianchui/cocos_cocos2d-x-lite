@@ -1881,7 +1881,7 @@ bool Image::initWithRawData(const unsigned char * data, ssize_t dataLen, int wid
 }
 
 
-#if (CC_TARGET_PLATFORM != CC_PLATFORM_IOS)
+#if (CC_TARGET_PLATFORM != CC_PLATFORM_IOS) || 1// [BC]保存png在ios上使用系统api时文件更大，图片可能颜色不正确
 bool Image::saveToFile(const std::string& filename, bool isToRGB)
 {
     //only support for Image::PixelFormat::RGB888 or Image::PixelFormat::RGBA8888 uncompressed data

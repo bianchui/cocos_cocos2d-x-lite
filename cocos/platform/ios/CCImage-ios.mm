@@ -37,6 +37,7 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
+#if 0// [BC]保存png在ios上使用系统api时文件更大，图片可能颜色不正确
 bool cocos2d::Image::saveToFile(const std::string& filename, bool isToRGB)
 {
     bool saveToPNG = false;
@@ -120,6 +121,7 @@ bool cocos2d::Image::saveToFile(const std::string& filename, bool isToRGB)
 
     return true;
 }
+#endif//0// [BC]保存png在ios上使用系统api时文件更大，图片可能颜色不正确
 
 NS_CC_END
 
