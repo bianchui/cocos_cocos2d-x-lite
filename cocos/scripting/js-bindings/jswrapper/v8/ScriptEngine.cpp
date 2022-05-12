@@ -33,6 +33,7 @@
 #include "Utils.hpp"
 #include "../State.hpp"
 #include "../MappingUtils.hpp"
+#include "v8ExceptionDetail.cpp.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 #include <sys/sysctl.h>
@@ -380,6 +381,13 @@ namespace se {
         auto event = msg.GetEvent();
         auto value = msg.GetValue();
         const char *eventName = "[invalidatePromiseEvent]";
+        
+        if (event == v8::kPromiseRejectWithNoHandler) {
+            if (!value.IsEmpty()) {
+                auto message = v8::Exception::CreateMessage(isolate, value);
+                printf("%s\n", v8ExceptionDetail(isolate, message, value, true).c_str());
+            }
+        }
         
         if(event == v8::kPromiseRejectWithNoHandler) {
             eventName = "unhandledRejectedPromise";
