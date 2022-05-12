@@ -1966,6 +1966,7 @@ bool Image::saveImageToPNG(const std::string& filePath, bool isToRGB)
                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
         }
 
+        png_set_compression_level(png_ptr, 9);
 #ifdef PNG_USE_PALETTE
         palette = (png_colorp)png_malloc(png_ptr, PNG_MAX_PALETTE_LENGTH * sizeof (png_color));
         png_set_PLTE(png_ptr, info_ptr, palette, PNG_MAX_PALETTE_LENGTH);
